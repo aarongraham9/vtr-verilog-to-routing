@@ -89,6 +89,7 @@ my $ending_stage            = stage_index("vpr");
 my @vpr_stages              = ();
 my $keep_intermediate_files = 1;
 my $keep_result_files       = 1;
+my $abc_use_mfs_command     = 0;
 my $lut_size                = undef;
 my $tech_file               = "";
 my $do_power                = 0;
@@ -142,6 +143,8 @@ while ( scalar(@ARGV) != 0 ) { #While non-empty
 		$keep_intermediate_files = 0;
 	} elsif ( $token eq "-delete_result_files" ) {
         $keep_result_files = 0;
+	} elsif ( $token eq "-abc_use_mfs" ) {
+        $abc_use_mfs_command = 1;
     } elsif ( $token eq "-track_memory_usage" ) {
         $track_memory_usage = 1;
     } elsif ( $token eq "-limit_memory_usage" ) {
@@ -555,7 +558,9 @@ if (    $starting_stage <= $stage_idx_abc
 		my $pre_abc_blif = $domain_itter."_".$odin_output_file_name;
 		my $post_abc_raw_blif = $domain_itter."_".$abc_raw_output_file_name;
 		my $post_abc_blif = $domain_itter."_".$abc_output_file_name;
-
+		my $extra_command = "";
+		my $strash_directive = "strash";
+		my $mfs_command = "mfs2 -v";
 
 		if ( exists  $clock_list[$domain_itter] )
 		{
@@ -574,6 +579,15 @@ if (    $starting_stage <= $stage_idx_abc
 			$pre_abc_blif = $input_blif;
 		}
 
+		if ( $abc_use_mfs_command )
+		{
+			$mfs_command = "mfs2 -v";
+		}
+		else
+		{
+			$mfs_command = "mfs -v";
+		}
+
 		###########
 		# ABC Optimizer
 
@@ -585,12 +599,11 @@ if (    $starting_stage <= $stage_idx_abc
 		#           related commands (e.g. ifraig) otherwise they will fail with “Only works for
 		#           structurally hashed networks”.
 		#
-		#  if –K #: This command techmaps the logic to LUTS. It should appear as the (near) final step
-		#           before writing the optimized netlist. In recent versions, ABC does not remember
-		#           that LUT size you want to techmap to. As a result, specifying if -K # early in
+		#  if –K #: This command techmaps the logic to LUTS. It should appear as the (near) final step before writing the optimized netlist.
+		#           In recent versions, ABC does not remember what LUT size you want to techmap to. As a result, specifying if -K # early in
 		#           the script causes ABC techmap to 2-LUTs, greatly increasing the amount of logic required (CLB’s, blocks, nets, etc.).
 		#
-		# The current script is based off the one used by YOSYS and on discussions with Alan Mishchenko (ABC author).
+		# The current script is based off the one used by YOSYS and on discussions with Alan Mishchenko (ABC's author).
 		# On 2018/04/28 Alan suggested the following:
 		#   (1) run synthesis commands such as "dc2" after "ifraig" and "scorr" (this way more equivalences are typically found - improves quality)
 		#   (2) run "ifraig" before "scorr" (this way comb equivalences are removed before seq equivalences are computed - improves runtime)
@@ -598,6 +611,8 @@ if (    $starting_stage <= $stage_idx_abc
 		#   (4) no need to run "scleanup" if "scorr" is used ("scorr" internally performs "scleanup" - improves runtime)
 		#   (5) no need to run"dc2" if "dch -f" is used, alternatively run "dc2; dch -f" (this will take more runtime but may not improve quality)
 		#   (6) the only place to run "strash" is after technology mapping (if the script is run more than once - can improve quality)
+		# On 2018/12/09 Alan further suggested the following:
+		#   (7) Attemp using mfs instead of mfs2
 		my $abc_commands="
 		echo '';
 		echo 'Load Netlist';
@@ -627,7 +642,7 @@ if (    $starting_stage <= $stage_idx_abc
 		dc2 -v;
 		dch -f;
 		if -K ${lut_size} -v;
-		mfs2 -v;
+		${mfs_command};
 		print_stats;
 		time;
 
