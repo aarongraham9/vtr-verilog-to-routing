@@ -581,11 +581,11 @@ if (    $starting_stage <= $stage_idx_abc
 
 		if ( $abc_use_mfs_command )
 		{
-			$mfs_command = "mfs2 -v";
+			$mfs_command = "mfs -v";
 		}
 		else
 		{
-			$mfs_command = "mfs -v";
+			$mfs_command = "mfs2 -v";
 		}
 
 		###########
