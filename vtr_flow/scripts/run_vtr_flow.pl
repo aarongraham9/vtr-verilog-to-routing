@@ -144,6 +144,7 @@ while ( scalar(@ARGV) != 0 ) { #While non-empty
 	} elsif ( $token eq "-delete_result_files" ) {
         $keep_result_files = 0;
 	} elsif ( $token eq "-abc_use_mfs" ) {
+		print "\nINFO: -abc_use_mfs flag specified: Use mfs command over mfs2 for ABC\n";
         $abc_use_mfs_command = 1;
     } elsif ( $token eq "-track_memory_usage" ) {
         $track_memory_usage = 1;
@@ -581,10 +582,12 @@ if (    $starting_stage <= $stage_idx_abc
 
 		if ( $abc_use_mfs_command )
 		{
+			print "\nINFO: Use mfs command over mfs2 for ABC\n";
 			$mfs_command = "mfs -v";
 		}
 		else
 		{
+			print "\nINFO: Use mfs2 command (DEFAULT) for ABC\n";
 			$mfs_command = "mfs2 -v";
 		}
 
