@@ -13,11 +13,6 @@
 
 #include <string.h>
 
-#ifndef DEBUG 
-/* TODO: Be Sure to Disable in Production: */
-#define DEBUG 0 // set debug mode [0 == off; 1 == on]
-#endif
-
 #ifndef FILE_NAME
 #define FILE_NAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
@@ -26,18 +21,6 @@
 #define ERR_MSG(errMsg) {\
     std::cout << std::endl << "ERROR: " << FILE_NAME << ":" << __LINE__ << " " << __func__ << "()" << ": " << errMsg << "!" << std::endl << std::endl;\
     }
-#endif
-
-#if DEBUG
-#define DEBUG_MSG(dbgMsg) {\
-    std::cout << "DEBUG: " << FILE_NAME << ":" << __LINE__ << " " << __func__ << "()" << ": " << dbgMsg;\
-    }
-#define DEBUG_NEWLINE() {\
-    std::cout << std::endl;\
-    }
-#else
-#define DEBUG_MSG(...)
-#define DEBUG_NEWLINE()
 #endif
 
 

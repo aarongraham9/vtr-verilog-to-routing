@@ -13,24 +13,33 @@
 
 using namespace BitSpace;
 
-/**
- * Compare operations
- */
-typedef enum
+class compare_bit
 {
-    LESS_THAN,
-    GREATHER_THAN,
-    EQUAL,
-    UNKNOWN
-}EVAL_RESULT;
+private:
+	uint8_t result = 0x0;
 
-static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
+public:
+	compare_bit(uint8_t set_to){result = set_to;}
+
+	bool is_unk(){	return (!result); }
+
+	bool is_gt(){	return (result&(0x1)); }
+	bool is_eq(){	return (result&(0x2)); }
+	bool is_lt(){	return (result&(0x4)); }
+
+	bool is_ne(){	return (!is_eq()); }
+	bool is_ge(){	return (result&(0x3)); }
+	bool is_le(){	return (result&(0x6)); }
+
+};
+
+#define UNK_EVAL compare_bit(0x0)
+#define GT_EVAL compare_bit(0x1)
+#define EQ_EVAL compare_bit(0x2)
+#define LT_EVAL compare_bit(0x4)
+
+static compare_bit eval_op(VNumber& a_in, VNumber& b_in)
 {
-	DEBUG_MSG("Init:");DEBUG_NEWLINE();
-	DEBUG_MSG("a_in: " << a_in.to_string());DEBUG_NEWLINE();
-	DEBUG_MSG("b_in: " << b_in.to_string());DEBUG_NEWLINE();
-	DEBUG_MSG("a_in.size(): " << a_in.size());DEBUG_NEWLINE();
-	DEBUG_MSG("b_in.size(): " << b_in.size());DEBUG_NEWLINE();
 
 	assert_Werr( a_in.size() ,
 		"empty 1st bit string" 
@@ -43,61 +52,41 @@ static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 	bool neg_a = (a_in.is_negative());
 	bool neg_b = (b_in.is_negative());
 
-	DEBUG_MSG("neg_a: a_in.is_negative(): " << ((true == neg_a) ? ("true") : ("false")));DEBUG_NEWLINE();
-	DEBUG_MSG("neg_b: b_in.is_negative(): " << ((true == neg_b) ? ("true") : ("false")));DEBUG_NEWLINE();
 
 	if(neg_a && !neg_b)
 	{
-		DEBUG_MSG("neg_a && !neg_b:");DEBUG_NEWLINE();
-		DEBUG_MSG("Return LESS_THAN: " << LESS_THAN);DEBUG_NEWLINE();
-		DEBUG_MSG("End.");DEBUG_NEWLINE();
-		return LESS_THAN;
+		return GT_EVAL;
 	}
 	else if(!neg_a && neg_b)
 	{
-		DEBUG_MSG("!neg_a && neg_b:");DEBUG_NEWLINE();
-		DEBUG_MSG("Return GREATHER_THAN: " << GREATHER_THAN);DEBUG_NEWLINE();
-		DEBUG_MSG("End.");DEBUG_NEWLINE();
-		return GREATHER_THAN;
+		return LT_EVAL;
 	}
 
 	VNumber a;
 	VNumber b;
 
-	// TODO: Remove?: DEBUG_MSG("a: " << a.to_string());DEBUG_NEWLINE();
-	// TODO: Remove?: DEBUG_MSG("b: " << b.to_string());DEBUG_NEWLINE();
 
 	bool invert_result = (neg_a && neg_b);
 
-	DEBUG_MSG("invert_result: (neg_a && neg_b): " << ((true == invert_result) ? ("true") : ("false")));DEBUG_NEWLINE();
 
 	if(invert_result)
 	{
 		a = a_in.twos_complement();
 		b = b_in.twos_complement();
 
-		DEBUG_MSG("a: a_in.twos_complement(): " << a.to_string());DEBUG_NEWLINE();
-		DEBUG_MSG("b: b_in.twos_complement(): " << b.to_string());DEBUG_NEWLINE();
 	}
 	else
 	{
 		a = a_in;
 		b = b_in;
 
-		DEBUG_MSG("a: a_in: " << a.to_string());DEBUG_NEWLINE();
-		DEBUG_MSG("b: b_in: " << b.to_string());DEBUG_NEWLINE();
 	}
 
-	DEBUG_MSG("a.size(): " << a.size());DEBUG_NEWLINE();
-	DEBUG_MSG("b.size(): " << b.size());DEBUG_NEWLINE();
 
 	size_t std_length = std::max(a.size(), b.size());
 	bit_value_t pad_a = a.get_padding_bit();
 	bit_value_t pad_b = b.get_padding_bit();
 
-	DEBUG_MSG("std_length: std::max(a.size(), b.size(): " << std_length);DEBUG_NEWLINE();
-	DEBUG_MSG("pad_a: a.get_padding_bit(): " << bit_to_c(pad_a));DEBUG_NEWLINE();
-	DEBUG_MSG("pad_b: b.get_padding_bit(): " << bit_to_c(pad_b));DEBUG_NEWLINE();
 
 	for(size_t i=std_length-1; i < std_length ; i--)
 	{
@@ -110,102 +99,27 @@ static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 			bit_b = b.get_bit_from_lsb(i);
 
 		if	(bit_a == BitSpace::_x || bit_b == BitSpace::_x)	
-			return UNKNOWN;
+			return UNK_EVAL;
 		else if(bit_a != bit_b)
 		{
 			if(bit_a == BitSpace::_1)
-				return (invert_result)? LESS_THAN: GREATHER_THAN;
+				return (invert_result)? LT_EVAL: GT_EVAL;
 			else
-				return (invert_result)? GREATHER_THAN: LESS_THAN;
+				return (invert_result)? GT_EVAL: LT_EVAL;
 		}
 	}
 
-	DEBUG_MSG("Return EQUAL: " << EQUAL);DEBUG_NEWLINE();
-	DEBUG_MSG("End.");DEBUG_NEWLINE();
 
-	return EQUAL;
+	return EQ_EVAL;
 }
 
-static EVAL_RESULT eval_op(VNumber a,int64_t b)
+static compare_bit eval_op(VNumber a,int64_t b)
 {
 	VNumber bits_value =  VNumber(std::to_string(std::abs(b)));
 	if(b < 0)
 		bits_value = bits_value.twos_complement();
 
 	return eval_op(a, bits_value);
-}
-
-static bit_value_t bit_eval(EVAL_RESULT evaluate_to, bool invert_evaluation, VNumber& a, VNumber& b)
-{
-	DEBUG_MSG("Init:");DEBUG_NEWLINE();
-
-	EVAL_RESULT evaluate = eval_op(a,b);
-
-	DEBUG_MSG("Return evaluate: " << evaluate);DEBUG_NEWLINE();
-	DEBUG_MSG("End.");DEBUG_NEWLINE();
-
-	return 	(evaluate == UNKNOWN) 							?	BitSpace::_x :
-			(invert_evaluation && evaluate != evaluate_to ) ?	BitSpace::_1 :
-			(!invert_evaluation && evaluate == evaluate_to )?	BitSpace::_1 :
-																BitSpace::_0 ;
-}
-
-/**
- * Unary Reduction operations
- */
-static bit_value_t reduce_op(VNumber& a, const bit_value_t lut[4][4])
-{
-	DEBUG_MSG("Init:");DEBUG_NEWLINE();
-
-	assert_Werr( a.size() ,
-		"empty bit string" 
-	);
-
-	bit_value_t result = a.get_bit_from_lsb(0);
-	for(size_t i=1; i < a.size(); i++)
-	{
-		result = lut[result][a.get_bit_from_lsb(i)];
-	}
-
-	DEBUG_MSG("Return result: " << result);DEBUG_NEWLINE();
-	DEBUG_MSG("End.");DEBUG_NEWLINE();
-
-	return result;
-}
-
-/**
- * Binary Reduction operations
- */
-static VNumber redux_op(VNumber& a, VNumber& b, const bit_value_t lut[4][4])
-{
-	assert_Werr( a.size() ,
-		"empty 1st bit string" 
-	);
-
-	assert_Werr( b.size() ,
-		"empty 2nd bit string" 
-	);
-
-	size_t std_length = std::max(a.size(), b.size());
-	const bit_value_t pad_a = a.get_padding_bit();
-	const bit_value_t pad_b = b.get_padding_bit();
-
-	VNumber result(std_length, _x, false);
-
-	for(size_t i=0; i < result.size(); i++)
-	{
-		bit_value_t bit_a = pad_a;
-		if(i < a.size())
-			bit_a = a.get_bit_from_lsb(i);
-
-		bit_value_t bit_b = pad_b;
-		if(i < b.size())
-			bit_b = b.get_bit_from_lsb(i);
-
-		result.set_bit_from_lsb(i, lut[bit_a][bit_b]);
-	}
-
-	return result;
 }
 
 /**
@@ -282,9 +196,7 @@ static VNumber shift_op(VNumber& a, int64_t b, bool sign_shift)
 
 bool V_TRUE(VNumber& a)
 {
-	DEBUG_MSG("Init:");DEBUG_NEWLINE();
-	DEBUG_MSG("Return reduce_op(a,l_or) == BitSpace::_1:");DEBUG_NEWLINE();
-	return	( reduce_op(a,l_or) == BitSpace::_1 );
+	return (a.get_value() != 0);
 }
 
 /***
@@ -296,20 +208,14 @@ bool V_TRUE(VNumber& a)
 
 VNumber V_BITWISE_NOT(VNumber& a)
 {
-	assert_Werr( a.size() ,
-		"empty bit string" 
-	);
-
-	VNumber to_return(a.size(), BitSpace::_0, false);
-	for(size_t i=0; i <a.size(); i++)
-		to_return.set_bit_from_lsb(i, l_not[a.get_bit_from_lsb(i)]);
-	return to_return;
+	return a.invert();
 }
 
 VNumber V_LOGICAL_NOT(VNumber& a)
 {
-	VNumber to_return(1, l_not[reduce_op(a,l_or)], false);
-	return to_return;
+	VNumber ored = a.bitwise_reduce(l_or);
+	VNumber noted = ored.invert();
+	return noted;
 }
 
 VNumber V_ADD(VNumber& a)
@@ -325,37 +231,37 @@ VNumber V_MINUS(VNumber& a)
 
 VNumber V_BITWISE_AND(VNumber& a)
 {
-	VNumber to_return(1, reduce_op(a, l_and), false);
+	VNumber to_return = a.bitwise_reduce(l_and);
 	return to_return;
 }
 
 VNumber V_BITWISE_OR(VNumber& a)
 {
-	VNumber to_return(1, reduce_op(a, l_or), false);
+	VNumber to_return = a.bitwise_reduce(l_or);
 	return to_return;
 }
 
 VNumber V_BITWISE_XOR(VNumber& a)
 {
-	VNumber to_return(1, reduce_op(a, l_xor), false);
+	VNumber to_return = a.bitwise_reduce(l_xor);
 	return to_return;
 }
 
 VNumber V_BITWISE_NAND(VNumber& a)
 {
-	VNumber to_return(1, reduce_op(a, l_nand), false);
+	VNumber to_return = a.bitwise_reduce(l_nand);
 	return to_return;
 }
 
 VNumber V_BITWISE_NOR(VNumber& a)
 {
-	VNumber to_return(1, reduce_op(a, l_nor), false);
+	VNumber to_return = a.bitwise_reduce(l_nor);
 	return to_return;
 }
 
 VNumber V_BITWISE_XNOR(VNumber& a)
 {
-	VNumber to_return(1, reduce_op(a, l_xnor), false);
+	VNumber to_return = a.bitwise_reduce(l_xnor);
 	return to_return;
 }
 
@@ -368,32 +274,32 @@ VNumber V_BITWISE_XNOR(VNumber& a)
 
 VNumber V_BITWISE_AND(VNumber& a, VNumber& b)
 {
-	return redux_op(a,b,l_and);
+	return a.bitwise(b,l_and);
 }
 
 VNumber V_BITWISE_OR(VNumber& a, VNumber& b)
 {
-	return redux_op(a,b,l_or);
+	return a.bitwise(b,l_or);
 }
 
 VNumber V_BITWISE_XOR(VNumber& a, VNumber& b)
 {
-	return redux_op(a,b,l_xor);
+	return a.bitwise(b,l_xor);
 }
 
 VNumber V_BITWISE_NAND(VNumber& a, VNumber& b)
 {
-	return redux_op(a,b,l_nand);
+	return a.bitwise(b,l_nand);
 }
 
 VNumber V_BITWISE_NOR(VNumber& a, VNumber& b)
 {
-	return redux_op(a,b,l_nor);
+	return a.bitwise(b,l_nor);
 }
 
 VNumber V_BITWISE_XNOR(VNumber& a, VNumber& b)
 {
-	return redux_op(a,b,l_xnor);
+	return a.bitwise(b,l_xnor);
 }
 
 /**
@@ -402,73 +308,80 @@ VNumber V_BITWISE_XNOR(VNumber& a, VNumber& b)
 
 VNumber V_CASE_EQUAL(VNumber& a, VNumber& b)
 {
-	return redux_op(a, b, l_case_eq);
+	VNumber longEval = a.bitwise(b, l_case_eq);
+	VNumber eq = V_BITWISE_AND(longEval);
+	return eq;
 }
 
 VNumber V_CASE_NOT_EQUAL(VNumber& a, VNumber& b)
 {
-	return redux_op(a, b, l_case_neq);
+	VNumber eq = V_CASE_EQUAL(a,b);
+	VNumber neq = V_LOGICAL_NOT(eq);
+	return neq;
 }
 
 VNumber V_LOGICAL_AND(VNumber& a, VNumber& b)
 {
-	bit_value_t bit_a = reduce_op(a, l_or);
-	bit_value_t bit_b = reduce_op(b, l_or);
-
-	VNumber to_return(1, l_and[bit_a][bit_b], false);
+	VNumber test = a.bitwise(b,l_or);
+	VNumber to_return = a.bitwise_reduce(l_and);
 
 	return to_return;
 }
 
 VNumber V_LOGICAL_OR(VNumber& a, VNumber& b)
 {
-	bit_value_t bit_a = reduce_op(a, l_or);
-	bit_value_t bit_b = reduce_op(b, l_or);
-
-	VNumber to_return(1, l_or[bit_a][bit_b], false);
+	VNumber test = a.bitwise(b,l_or);
+	VNumber to_return = a.bitwise_reduce(l_or);
 
 	return to_return;
 }
 
 VNumber V_LT(VNumber& a, VNumber& b)
 {
-	VNumber to_return(1, bit_eval(LESS_THAN, false, a, b), false);
+	compare_bit cmp = eval_op(a,b);
+	BitSpace::bit_value_t result = cmp.is_unk()? BitSpace::_x: cmp.is_lt()? BitSpace::_1: BitSpace::_0;
+	VNumber to_return(1, result, false);
 	return to_return;
 }
 
 VNumber V_GT(VNumber& a, VNumber& b)
 {
-	VNumber to_return(1, bit_eval(GREATHER_THAN, false, a, b), false);
+	compare_bit cmp = eval_op(a,b);
+	BitSpace::bit_value_t result = cmp.is_unk()? BitSpace::_x: cmp.is_gt()? BitSpace::_1: BitSpace::_0;
+	VNumber to_return(1, result, false);
 	return to_return;
 }
 
 VNumber V_EQUAL(VNumber& a, VNumber& b)
 {
-	DEBUG_MSG("Init:");DEBUG_NEWLINE();
 
-	VNumber to_return(1, bit_eval(EQUAL, false, a, b), false);
-
-	DEBUG_MSG("Return to_return: " << to_return.to_string());DEBUG_NEWLINE();
-	DEBUG_MSG("End.");DEBUG_NEWLINE();
-
+	compare_bit cmp = eval_op(a,b);
+	BitSpace::bit_value_t result = cmp.is_unk()? BitSpace::_x: cmp.is_eq()? BitSpace::_1: BitSpace::_0;
+	VNumber to_return(1, result, false);
 	return to_return;
 }
 
 VNumber V_GE(VNumber& a, VNumber& b)
 {
-	VNumber to_return(1, bit_eval(LESS_THAN, true, a, b), false);
+	compare_bit cmp = eval_op(a,b);
+	BitSpace::bit_value_t result = cmp.is_unk()? BitSpace::_x: cmp.is_ge()? BitSpace::_1: BitSpace::_0;
+	VNumber to_return(1, result, false);
 	return to_return;
 }
 
 VNumber V_LE(VNumber& a, VNumber& b)
 {
-	VNumber to_return(1, bit_eval(GREATHER_THAN, true, a, b), false);
+	compare_bit cmp = eval_op(a,b);
+	BitSpace::bit_value_t result = cmp.is_unk()? BitSpace::_x: cmp.is_le()? BitSpace::_1: BitSpace::_0;
+	VNumber to_return(1, result, false);
 	return to_return;
 }
 
 VNumber V_NOT_EQUAL(VNumber& a, VNumber& b)
 {
-	VNumber to_return(1, bit_eval(EQUAL, true, a, b), false);
+	compare_bit cmp = eval_op(a,b);
+	BitSpace::bit_value_t result = cmp.is_unk()? BitSpace::_x: cmp.is_ne()? BitSpace::_1: BitSpace::_0;
+	VNumber to_return(1, result, false);
 	return to_return;
 }
 
@@ -559,16 +472,16 @@ VNumber V_MULTIPLY(VNumber& a_in, VNumber& b_in)
 VNumber V_POWER(VNumber& a, VNumber& b)
 {
 	if(a.is_dont_care_string() || b.is_dont_care_string())
-		return VNumber("xxxx");
+		return VNumber("'bx");
 	
-	EVAL_RESULT res_a = eval_op(a, 0);
-	short val_a = 	(res_a == EQUAL) 			? 	0: 
-					(res_a == LESS_THAN) 		? 	((eval_op(a,-1) == LESS_THAN))	?	-2: -1:
-					/* GREATHER_THAN */  			((eval_op(a,1) == GREATHER_THAN))	?	2: 1;
+	compare_bit res_a = eval_op(a, 0);
+	short val_a = 	(res_a.is_eq()) 		? 	0: 
+					(res_a.is_lt()) 		? 	(eval_op(a,-1).is_lt())	?	-2: -1:
+					/* GREATHER_THAN */  		(eval_op(a,1).is_gt())	?	2: 1;
 
-	EVAL_RESULT res_b = eval_op(b, 0);
-	short val_b = 	(res_b == EQUAL) 			? 	0: 
-					(res_b == LESS_THAN) 		? 	-1:
+	compare_bit res_b = eval_op(b, 0);
+	short val_b = 	(res_b.is_eq()) 			? 	0: 
+					(res_b.is_lt()) 		? 	-1:
 					/* GREATHER_THAN */				1;
 
 	//TODO this won't work
@@ -579,7 +492,7 @@ VNumber V_POWER(VNumber& a, VNumber& b)
 		VNumber result("1");
 		VNumber one = VNumber("1");
 		VNumber tmp_b = b;
-		while(eval_op(tmp_b,0) == GREATHER_THAN)
+		while(eval_op(tmp_b,0).is_gt())
 		{
 			tmp_b = V_MINUS(tmp_b, one);
 			result = V_MULTIPLY( result, a);
@@ -611,19 +524,19 @@ VNumber V_POWER(VNumber& a, VNumber& b)
 /////////////////////////////
 VNumber V_DIV(VNumber& a_in, VNumber& b)
 {
-	if(a_in.is_dont_care_string() || b.is_dont_care_string() || eval_op(b,0) == EQUAL)
+	if(a_in.is_dont_care_string() || b.is_dont_care_string() || eval_op(b,0).is_eq())
 		return VNumber("x");
 
 	VNumber a(a_in);
 
 	VNumber result("0");
 	//TODO signed division!
-	while(eval_op(a, b) == GREATHER_THAN )
+	while(eval_op(a, b).is_gt() )
 	{
 		VNumber  count("1");
 		VNumber  sub_with = b;
 		VNumber  tmp = b;
-		while(eval_op(tmp, a) == LESS_THAN)
+		while(eval_op(tmp, a).is_lt())
 		{
 			sub_with = tmp;
 			shift_op(count, 1,_0);
@@ -637,15 +550,15 @@ VNumber V_DIV(VNumber& a_in, VNumber& b)
 
 VNumber V_MOD(VNumber& a_in, VNumber& b)
 {
-	if(a_in.is_dont_care_string() || b.is_dont_care_string() || eval_op(b, 0) == EQUAL)
+	if(a_in.is_dont_care_string() || b.is_dont_care_string() || eval_op(b, 0).is_eq())
 		return VNumber("x");
 
 	VNumber to_return(a_in);
 	//TODO signed division!
-	while(eval_op(b, to_return)  == LESS_THAN)
+	while(eval_op(b, to_return).is_lt())
 	{
 		VNumber  sub_with = b;
-		for( VNumber  tmp = b; eval_op(tmp, to_return) == LESS_THAN; shift_op(tmp, 1,_0))
+		for( VNumber  tmp = b; eval_op(tmp, to_return).is_lt(); shift_op(tmp, 1,_0))
 		{
 			sub_with = tmp;
 		}
@@ -663,9 +576,9 @@ VNumber V_MOD(VNumber& a_in, VNumber& b)
 VNumber V_TERNARY(VNumber& a_in, VNumber& b_in, VNumber& c_in)
 {
 	/*	if a evaluates properly	*/
-	EVAL_RESULT eval = eval_op(V_LOGICAL_NOT(a_in),0);
+	compare_bit eval = eval_op(V_LOGICAL_NOT(a_in),0);
 
-	if(eval == UNKNOWN)		return redux_op(b_in, c_in, l_ternary);
-	else if(eval == EQUAL)	return VNumber(b_in);
-	else					return VNumber(c_in);
+	return (eval.is_unk())?	b_in.bitwise(c_in, l_ternary):
+			(eval.is_eq())?	VNumber(b_in):
+							VNumber(c_in);
 }

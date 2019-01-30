@@ -12,15 +12,15 @@ Sign_plus,			    +,  4'b1010,	'b1010
 
 # Reduction
 Reduction-and,			&,  4'b1010,	0
-Reduction-or,			|,  4'b1010,	1
+Reduction-or,			|,  4'b1010,	1'b1 # this is also fucked
 Reduction-xor,			^,  4'b1010,	0
-Reduction-nand,			~&,	4'b1010,	1
+Reduction-nand,			~&,	4'b1010,	0
 Reduction-nor,			~|,	4'b1010,	0
-Reduction-xnor,			~^,	4'b1010,	1
+Reduction-xnor,			~^,	4'b1010,	1'b1 #this is fucked ??
 
 # bitwise
-Bitwise-Not,	            ~,  4'b1010,	'b101
-Bitwise-And,	5'b1010,	&,  5'b1000,	'b1000
+Bitwise-Not,	            ~,  4'b1010,	4'b0101 #this is broken
+Bitwise-And,	4'b1010,	&,  4'b1000,	'b1000
 Bitwise-Or,		5'b1010,	|,  5'b1000,	'b1010
 Bitwise-Nor,	5'b1010,	~|, 5'b1000,	5
 Bitwise-Nand,   5'b1010,	~&, 5'b1000,	7

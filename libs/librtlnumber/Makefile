@@ -51,7 +51,7 @@ debug: clean
 	$(C) $(cleanup_flags) $(INCLUDE) $(SRC) main.cpp -o $(BIN)
 
 build: clean
-	$(C) $(INCLUDE) $(SRC) -o $(BIN)
+	$(C) $(INCLUDE) $(SRC) main.cpp -o $(BIN)
 
 run:
 	./$(BIN) $(RUN_ARGS) 
