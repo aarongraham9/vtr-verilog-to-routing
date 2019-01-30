@@ -342,8 +342,11 @@ namespace BitSpace {
         {
 
     #ifdef DEBUG_V_BITS
-            assert_Werr(index < this->bits.size(),
-                "Bit list index out of bounds");
+            if (index >= this->bits.size() )
+            {
+                std::cout << "Bit array indexing out of bounds " << index << " but size is " << this->bit_size  << std::endl;
+                std::abort();
+            }
     #endif
 
             return (&this->bits[index]);
@@ -352,8 +355,11 @@ namespace BitSpace {
         bit_value_t get_bit(size_t address)
         {
     #ifdef DEBUG_V_BITS
-            assert_Werr(address < this->bit_size,
-                "Bit index array out of bounds");
+            if (address >= this->bit_size )
+            {
+                std::cout << "Bit index array out of bounds " << address << " but size is " << this->bit_size  << std::endl;
+                std::abort();
+            }
     #endif
 
             return (this->get_bitfield(to_index(address))->get_bit(address));
@@ -362,27 +368,28 @@ namespace BitSpace {
         void set_bit(size_t address, bit_value_t value)
         {
     #ifdef DEBUG_V_BITS
-            assert_Werr(address < this->bit_size,
-                "Bit index array out of bounds");
+            if (address >= this->bit_size )
+            {
+                std::cout << "Bit index array out of bounds " << address << " but size is " << this->bit_size  << std::endl;
+                std::abort();
+            }
     #endif
             (this->get_bitfield(to_index(address))->set_bit(address, value));
         }
 
         std::string to_string(bool big_endian)
         {
-            int start =      (big_endian)? 0x0: static_cast<int>(this->size()-1);
-            int end =        (big_endian)? static_cast<int>(this->size()-1): 0x0;
-            int increment =  (big_endian)? 1: -1;
-
+            // make a big endian string
             std::string to_return = "";
-            for(
-                int address=start; 
-                (big_endian)? (address <= static_cast<int>(end)): (address >= static_cast<int>(end)); 
-                address += increment)
+            for(size_t address=0x0; address < this->size(); address++)
             {
-                to_return.push_back(BitSpace::bit_to_c(this->get_bit(static_cast<size_t>(address))));
+                to_return.push_back(BitSpace::bit_to_c(this->get_bit(address)));
             }
-            return to_return;
+
+            if(!big_endian)
+                return std::string(to_return.crbegin(), to_return.crend());
+            else
+                return to_return;              
         }
 
         bool has_unknowns()
@@ -400,8 +407,8 @@ namespace BitSpace {
         VerilogBits *bitwise_reduce(const bit_value_t lut[4][4])
         {
 
-            bit_value_t result = this->get_bit(this->size()-1);
-            for(size_t i=this->size()-2; i < this->size(); i--)
+            bit_value_t result = this->get_bit(0);
+            for(size_t i=1; i < this->size(); i++)
             {
                 result = lut[result][this->get_bit(i)];
             }
@@ -414,7 +421,7 @@ namespace BitSpace {
             BitSpace::bit_value_t previous_carry = BitSpace::_1;
             VerilogBits *other = new VerilogBits(this->bit_size, _0);
 
-            for(size_t i=this->size()-1; i<this->size(); i--)
+            for(size_t i=0; i<this->size(); i++)
                 other->set_bit(i, BitSpace::l_not[this->get_bit(i)]);
                         
             return other;
@@ -425,7 +432,7 @@ namespace BitSpace {
             BitSpace::bit_value_t previous_carry = BitSpace::_1;
             VerilogBits *other = new VerilogBits(this->bit_size, _0);
 
-            for(size_t i=this->size()-1; i<this->size(); i--)
+            for(size_t i=0; i<this->size(); i++)
             {
                 BitSpace::bit_value_t not_bit_i = BitSpace::l_not[this->get_bit(i)];
 
@@ -533,11 +540,8 @@ public:
     {
         // TODO: handle empty VNumber: e.g. VNumber(){}
 
-
-        std::string out = this->bitstring->to_string(true);
+        std::string out = this->bitstring->to_string(false);
         size_t len = this->bitstring->size();
-
-
 
         return std::to_string(len) + ((this->is_signed())? "\'sb": "\'b") + out;
     }
@@ -586,49 +590,50 @@ public:
         //remove underscores
         std::string v_value_str = verilog_string.substr(loc+2+sign);
         verilog_string.erase(std::remove(v_value_str.begin(), v_value_str.end(), '_'), v_value_str.end());
+
+        //little endian bitstring string
         std::string temp_bitstring = string_of_radix_to_bitstring(v_value_str, radix);
 
         if(bitsize <= 0)
         {
-            char back = temp_bitstring.back();
-            temp_bitstring.pop_back();
-            while(temp_bitstring.size() && temp_bitstring.back() == back)
-                temp_bitstring.pop_back();
+            while(temp_bitstring.size() && temp_bitstring[0] == temp_bitstring[1])
+                temp_bitstring.erase(0, 1);
 
-            temp_bitstring.push_back(back);
             bitsize = temp_bitstring.size();
         }
         else if(bitsize > temp_bitstring.length())
         {
-            char pad = temp_bitstring.back();
+            char pad = temp_bitstring[0];
             if(!this->sign && pad == '1')
                 pad = '0';
 
             while(bitsize != temp_bitstring.length())
-                temp_bitstring.push_back(pad);
+                temp_bitstring.insert(temp_bitstring.begin(),pad);
         }
         else if(bitsize < temp_bitstring.length())
         {
             while(bitsize != temp_bitstring.length())
-                temp_bitstring.pop_back();
+                temp_bitstring.erase(0, 1);
         }
 
         if(this->bitstring)
             delete this->bitstring;
 
-        // convert the bits to the internal data struct the bitstring is in little endian and we switch to big endian
+        // convert the bits to the internal data struct (bit at index 0 in string is msb since string go from msb to lsb)
         this->bitstring = new BitSpace::VerilogBits(bitsize, BitSpace::_0);
-        size_t counter=temp_bitstring.size();
+        size_t counter = bitsize-1;
         for(char in: temp_bitstring)
-            this->bitstring->set_bit(--counter,BitSpace::c_to_bit(in));
-
+            this->bitstring->set_bit(counter--,BitSpace::c_to_bit(in));
     }
 
     void set_value(int64_t in)
     {
-
         this->set_value(std::to_string(in));
+    }
 
+    size_t msb_index()
+    {
+        return this->bitstring->size()-1;
     }
 
     /****
@@ -636,7 +641,7 @@ public:
      */
     BitSpace::bit_value_t get_bit_from_msb(size_t index)
     {
-        return this->bitstring->get_bit(this->bitstring->size()-1-index);
+        return this->bitstring->get_bit(msb_index()-index);
     }
 
     BitSpace::bit_value_t get_bit_from_lsb(size_t index)
@@ -646,7 +651,7 @@ public:
 
     void set_bit_from_msb(size_t index, BitSpace::bit_value_t val)
     {
-        this->bitstring->set_bit(this->bitstring->size()-1-index, val);
+        this->bitstring->set_bit(msb_index()-index, val);
     }
 
     void set_bit_from_lsb(size_t index, BitSpace::bit_value_t val)

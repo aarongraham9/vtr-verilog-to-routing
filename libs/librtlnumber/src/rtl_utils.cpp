@@ -100,7 +100,7 @@ inline static std::string _radix_digit_to_bits(const char digit, short radix,  c
 }
 
 /**********************
- * convert from and to internal representation bitstring
+ * convert from different radix to bitstring
  */
 std::string string_of_radix_to_bitstring(std::string orig_string, short radix)
 {
@@ -158,7 +158,7 @@ std::string string_of_radix_to_bitstring(std::string orig_string, short radix)
                     rem_digit =         (static_cast<char>((new_pair%2) + '0'));
 				}
 
-                result.push_back(rem_digit);
+                result.insert(result.begin(),rem_digit);
                 if(new_number == "0")
                     orig_string = "";
                 else
@@ -168,7 +168,7 @@ std::string string_of_radix_to_bitstring(std::string orig_string, short radix)
 			}
 			default:
 			{
-                result += radix_digit_to_bits(orig_string.back(), radix);
+                result = radix_digit_to_bits(orig_string.back(), radix) + result;
                 orig_string.pop_back();
                 break;
 			}
