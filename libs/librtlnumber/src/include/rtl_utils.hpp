@@ -14,7 +14,8 @@
 #include <string.h>
 
 #ifndef DEBUG 
-#define DEBUG 1 // set debug mode [0 == off; 1 == on]
+/* TODO: Be Sure to Disable in Production: */
+#define DEBUG 0 // set debug mode [0 == off; 1 == on]
 #endif
 
 #ifndef FILE_NAME

@@ -38,8 +38,9 @@ cleanup_flags=\
 -Wall \
 -ggdb -O0 -g \
 -Wno-c++98-compat \
--Wno-padded \
--fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
+-Wno-padded
+#  \
+# -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
 PHONY: error
 
@@ -50,7 +51,7 @@ debug: clean
 	$(C) $(cleanup_flags) $(INCLUDE) $(SRC) main.cpp -o $(BIN)
 
 build: clean
-	$(C) $(INCLUDE) $(RUN_ARGS) $(SRC) -o $(BIN)
+	$(C) $(INCLUDE) $(SRC) -o $(BIN)
 
 run:
 	./$(BIN) $(RUN_ARGS) 

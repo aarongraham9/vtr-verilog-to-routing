@@ -64,8 +64,8 @@ static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 	VNumber a;
 	VNumber b;
 
-	DEBUG_MSG("a: " << a.to_string());DEBUG_NEWLINE();
-	DEBUG_MSG("b: " << b.to_string());DEBUG_NEWLINE();
+	// TODO: Remove?: DEBUG_MSG("a: " << a.to_string());DEBUG_NEWLINE();
+	// TODO: Remove?: DEBUG_MSG("b: " << b.to_string());DEBUG_NEWLINE();
 
 	bool invert_result = (neg_a && neg_b);
 
@@ -92,12 +92,12 @@ static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 	DEBUG_MSG("b.size(): " << b.size());DEBUG_NEWLINE();
 
 	size_t std_length = std::max(a.size(), b.size());
-	const bit_value_t pad_a = a.get_padding_bit();
-	const bit_value_t pad_b = b.get_padding_bit();
+	bit_value_t pad_a = a.get_padding_bit();
+	bit_value_t pad_b = b.get_padding_bit();
 
 	DEBUG_MSG("std_length: std::max(a.size(), b.size(): " << std_length);DEBUG_NEWLINE();
-	DEBUG_MSG("pad_a: a.get_padding_bit(): " << pad_a);DEBUG_NEWLINE();
-	DEBUG_MSG("pad_b: b.get_padding_bit(): " << pad_b);DEBUG_NEWLINE();
+	DEBUG_MSG("pad_a: a.get_padding_bit(): " << bit_to_c(pad_a));DEBUG_NEWLINE();
+	DEBUG_MSG("pad_b: b.get_padding_bit(): " << bit_to_c(pad_b));DEBUG_NEWLINE();
 
 	for(size_t i=std_length-1; i < std_length ; i--)
 	{

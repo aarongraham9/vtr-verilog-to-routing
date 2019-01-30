@@ -428,6 +428,7 @@ namespace BitSpace {
             VerilogBits *other = new VerilogBits(this->bit_size, _0);
             BitSpace::bit_value_t previous_carry = BitSpace::_1;
 
+            // TODO: lsb vs. msb? Reverse?
             for(size_t i=0; i<this->size(); i++)
             {
                 BitSpace::bit_value_t bit_a = BitSpace::l_not[this->get_bit(i)];
@@ -549,6 +550,8 @@ public:
     // convert lsb_msb bitstring to verilog
     std::string to_string()
     {
+        // TODO: handle empty VNumber: e.g. VNumber(){}
+
         DEBUG_MSG("Init:");DEBUG_NEWLINE();
         DEBUG_MSG("this->bitstring->to_string(true): " << this->bitstring->to_string(true));DEBUG_NEWLINE();
         DEBUG_MSG("this->bitstring->size(): " << this->bitstring->size());DEBUG_NEWLINE();
@@ -665,17 +668,17 @@ public:
         DEBUG_MSG("this->bitstring->size(): " << this->bitstring->size());DEBUG_NEWLINE();
         DEBUG_MSG("Return this->bitstring->get_bit(this->bitstring->size()-index):");DEBUG_NEWLINE();
         DEBUG_MSG("End.");DEBUG_NEWLINE();
-        return this->bitstring->get_bit(this->bitstring->size()-index);
+        return this->bitstring->get_bit(this->bitstring->size()-1-index);
     }
 
     BitSpace::bit_value_t get_bit_from_lsb(size_t index)
     {
-        return this->bitstring->get_bit(this->bitstring->size()-index);
+        return this->bitstring->get_bit(this->bitstring->size()-1-index);
     }
 
     void set_bit_from_msb(size_t index, BitSpace::bit_value_t val)
     {
-        this->bitstring->set_bit(this->bitstring->size()-index, val);
+        this->bitstring->set_bit(this->bitstring->size()-1-index, val);
     }
 
     void set_bit_from_lsb(size_t index, BitSpace::bit_value_t val)
