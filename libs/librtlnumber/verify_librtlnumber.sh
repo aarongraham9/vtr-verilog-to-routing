@@ -81,8 +81,7 @@ for INPUT in ${0%/*}/regression_tests/*.csv; do
 		# echo -e "${0##*/}@${HOSTNAME}: DEBUG: EXPECTED_RESULT: $EXPECTED_RESULT\n"
 		# echo -e "${0##*/}@${HOSTNAME}: DEBUG: RTL_CMD_IN: $RTL_CMD_IN\n"
 
-		# TODO: Check for Anything on standard out and any non-'0' exit codes:
-
+		# Check for Anything on standard out and any non-'0' exit codes:
 		OUTPUT_AND_RESULT=$(${0%/*}/rtl_number ${RTL_CMD_IN})
 		EXIT_CODE=$?
 
