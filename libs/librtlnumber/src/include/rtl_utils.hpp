@@ -14,13 +14,22 @@
 #include <string.h>
 
 #ifndef DEBUG 
-#define DEBUG 0 // set debug mode [0 == off; 1 == on]
+#define DEBUG 1 // set debug mode [0 == off; 1 == on]
+#endif
+
+#ifndef FILE_NAME
+#define FILE_NAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
+
+#ifndef ERR_MSG
+#define ERR_MSG(errMsg) {\
+    std::cout << std::endl << "ERROR: " << FILE_NAME << ":" << __LINE__ << " " << __func__ << "()" << ": " << errMsg << "!" << std::endl << std::endl;\
+    }
 #endif
 
 #if DEBUG
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define DEBUG_MSG(dbgMsg) {\
-    std::cout << __FILENAME__ << ":" << __LINE__ << " DEBUG: " << __func__ << "()" << ": " << dbgMsg;\
+    std::cout << "DEBUG: " << FILE_NAME << ":" << __LINE__ << " " << __func__ << "()" << ": " << dbgMsg;\
     }
 #define DEBUG_NEWLINE() {\
     std::cout << std::endl;\
@@ -36,7 +45,7 @@ std::string string_of_radix_to_bitstring(std::string orig_string, short radix);
 inline void _assert_Werr(bool cond, const char *FUNCT, int LINE, std::string error_string)
 {
     if (!cond) { 
-        std::cout << "ERROR:" << FUNCT << "::" << std::to_string(LINE) << "\t" << error_string << std::endl;
+        std::cout << std::endl << "ERROR: " << FUNCT << "::" << std::to_string(LINE) << " Assert 'assert_Werr' Failed:\t" << error_string << "!" << std::endl << std::endl;
         std::abort();
     }
 }

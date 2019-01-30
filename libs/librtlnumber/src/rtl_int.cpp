@@ -26,6 +26,12 @@ typedef enum
 
 static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 {
+	DEBUG_MSG("Init:");DEBUG_NEWLINE();
+	DEBUG_MSG("a_in: " << a_in.to_string());DEBUG_NEWLINE();
+	DEBUG_MSG("b_in: " << b_in.to_string());DEBUG_NEWLINE();
+	DEBUG_MSG("a_in.size(): " << a_in.size());DEBUG_NEWLINE();
+	DEBUG_MSG("b_in.size(): " << b_in.size());DEBUG_NEWLINE();
+
 	assert_Werr( a_in.size() ,
 		"empty 1st bit string" 
 	);
@@ -37,29 +43,61 @@ static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 	bool neg_a = (a_in.is_negative());
 	bool neg_b = (b_in.is_negative());
 
+	DEBUG_MSG("neg_a: a_in.is_negative(): " << ((true == neg_a) ? ("true") : ("false")));DEBUG_NEWLINE();
+	DEBUG_MSG("neg_b: b_in.is_negative(): " << ((true == neg_b) ? ("true") : ("false")));DEBUG_NEWLINE();
+
 	if(neg_a && !neg_b)
+	{
+		DEBUG_MSG("neg_a && !neg_b:");DEBUG_NEWLINE();
+		DEBUG_MSG("Return LESS_THAN: " << LESS_THAN);DEBUG_NEWLINE();
+		DEBUG_MSG("End.");DEBUG_NEWLINE();
 		return LESS_THAN;
+	}
 	else if(!neg_a && neg_b)
+	{
+		DEBUG_MSG("!neg_a && neg_b:");DEBUG_NEWLINE();
+		DEBUG_MSG("Return GREATHER_THAN: " << GREATHER_THAN);DEBUG_NEWLINE();
+		DEBUG_MSG("End.");DEBUG_NEWLINE();
 		return GREATHER_THAN;
+	}
 
 	VNumber a;
 	VNumber b;
+
+	DEBUG_MSG("a: " << a.to_string());DEBUG_NEWLINE();
+	DEBUG_MSG("b: " << b.to_string());DEBUG_NEWLINE();
+
 	bool invert_result = (neg_a && neg_b);
+
+	DEBUG_MSG("invert_result: (neg_a && neg_b): " << ((true == invert_result) ? ("true") : ("false")));DEBUG_NEWLINE();
 
 	if(invert_result)
 	{
 		a = a_in.twos_complement();
 		b = b_in.twos_complement();
+
+		DEBUG_MSG("a: a_in.twos_complement(): " << a.to_string());DEBUG_NEWLINE();
+		DEBUG_MSG("b: b_in.twos_complement(): " << b.to_string());DEBUG_NEWLINE();
 	}
 	else
 	{
 		a = a_in;
 		b = b_in;
+
+		DEBUG_MSG("a: a_in: " << a.to_string());DEBUG_NEWLINE();
+		DEBUG_MSG("b: b_in: " << b.to_string());DEBUG_NEWLINE();
 	}
+
+	DEBUG_MSG("a.size(): " << a.size());DEBUG_NEWLINE();
+	DEBUG_MSG("b.size(): " << b.size());DEBUG_NEWLINE();
 
 	size_t std_length = std::max(a.size(), b.size());
 	const bit_value_t pad_a = a.get_padding_bit();
 	const bit_value_t pad_b = b.get_padding_bit();
+
+	DEBUG_MSG("std_length: std::max(a.size(), b.size(): " << std_length);DEBUG_NEWLINE();
+	DEBUG_MSG("pad_a: a.get_padding_bit(): " << pad_a);DEBUG_NEWLINE();
+	DEBUG_MSG("pad_b: b.get_padding_bit(): " << pad_b);DEBUG_NEWLINE();
 
 	for(size_t i=std_length-1; i < std_length ; i--)
 	{
@@ -81,6 +119,10 @@ static EVAL_RESULT eval_op(VNumber& a_in, VNumber& b_in)
 				return (invert_result)? GREATHER_THAN: LESS_THAN;
 		}
 	}
+
+	DEBUG_MSG("Return EQUAL: " << EQUAL);DEBUG_NEWLINE();
+	DEBUG_MSG("End.");DEBUG_NEWLINE();
+
 	return EQUAL;
 }
 
@@ -95,7 +137,13 @@ static EVAL_RESULT eval_op(VNumber a,int64_t b)
 
 static bit_value_t bit_eval(EVAL_RESULT evaluate_to, bool invert_evaluation, VNumber& a, VNumber& b)
 {
+	DEBUG_MSG("Init:");DEBUG_NEWLINE();
+
 	EVAL_RESULT evaluate = eval_op(a,b);
+
+	DEBUG_MSG("Return evaluate: " << evaluate);DEBUG_NEWLINE();
+	DEBUG_MSG("End.");DEBUG_NEWLINE();
+
 	return 	(evaluate == UNKNOWN) 							?	BitSpace::_x :
 			(invert_evaluation && evaluate != evaluate_to ) ?	BitSpace::_1 :
 			(!invert_evaluation && evaluate == evaluate_to )?	BitSpace::_1 :
@@ -107,6 +155,8 @@ static bit_value_t bit_eval(EVAL_RESULT evaluate_to, bool invert_evaluation, VNu
  */
 static bit_value_t reduce_op(VNumber& a, const bit_value_t lut[4][4])
 {
+	DEBUG_MSG("Init:");DEBUG_NEWLINE();
+
 	assert_Werr( a.size() ,
 		"empty bit string" 
 	);
@@ -116,6 +166,9 @@ static bit_value_t reduce_op(VNumber& a, const bit_value_t lut[4][4])
 	{
 		result = lut[result][a.get_bit_from_lsb(i)];
 	}
+
+	DEBUG_MSG("Return result: " << result);DEBUG_NEWLINE();
+	DEBUG_MSG("End.");DEBUG_NEWLINE();
 
 	return result;
 }
@@ -229,6 +282,8 @@ static VNumber shift_op(VNumber& a, int64_t b, bool sign_shift)
 
 bool V_TRUE(VNumber& a)
 {
+	DEBUG_MSG("Init:");DEBUG_NEWLINE();
+	DEBUG_MSG("Return reduce_op(a,l_or) == BitSpace::_1:");DEBUG_NEWLINE();
 	return	( reduce_op(a,l_or) == BitSpace::_1 );
 }
 
@@ -389,7 +444,13 @@ VNumber V_GT(VNumber& a, VNumber& b)
 
 VNumber V_EQUAL(VNumber& a, VNumber& b)
 {
+	DEBUG_MSG("Init:");DEBUG_NEWLINE();
+
 	VNumber to_return(1, bit_eval(EQUAL, false, a, b), false);
+
+	DEBUG_MSG("Return to_return: " << to_return.to_string());DEBUG_NEWLINE();
+	DEBUG_MSG("End.");DEBUG_NEWLINE();
+
 	return to_return;
 }
 
