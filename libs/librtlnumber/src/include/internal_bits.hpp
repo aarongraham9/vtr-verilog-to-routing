@@ -561,7 +561,9 @@ public:
 
         size_t bitsize = 0;
         if(loc != 0)
+        {
             bitsize = strtoul(verilog_string.substr(0,loc).c_str(), nullptr, 10);
+        }
 
         this->sign = false;
         if(std::tolower(verilog_string[loc+1]) == 's')
@@ -588,23 +590,34 @@ public:
 
         if(bitsize <= 0)
         {
-            while(temp_bitstring.size() > 1 && temp_bitstring[0] == temp_bitstring[1])
-                temp_bitstring.erase(temp_bitstring.begin(),temp_bitstring.begin()+1);
+            char back = temp_bitstring.back();
+            temp_bitstring.pop_back();
+            while(temp_bitstring.size() && temp_bitstring.back() == back)
+                temp_bitstring.pop_back();
+
+            temp_bitstring.push_back(back);
+            bitsize = temp_bitstring.size();
         }
         else if(bitsize > temp_bitstring.length())
         {
-            temp_bitstring = std::string( temp_bitstring.length() - bitsize + 1, BitSpace::bit_to_c(this->get_padding_bit() ) ) + temp_bitstring;
+            char pad = temp_bitstring.back();
+            if(!this->sign && pad == '1')
+                pad = '0';
+
+            while(bitsize != temp_bitstring.length())
+                temp_bitstring.push_back(pad);
         }
         else if(bitsize < temp_bitstring.length())
         {
-            temp_bitstring.erase(temp_bitstring.begin(),temp_bitstring.begin() + (bitsize - temp_bitstring.length()));
+            while(bitsize != temp_bitstring.length())
+                temp_bitstring.pop_back();
         }
 
         if(this->bitstring)
             delete this->bitstring;
 
         // convert the bits to the internal data struct the bitstring is in little endian and we switch to big endian
-        this->bitstring = new BitSpace::VerilogBits(temp_bitstring.size(), BitSpace::_0);
+        this->bitstring = new BitSpace::VerilogBits(bitsize, BitSpace::_0);
         size_t counter=temp_bitstring.size();
         for(char in: temp_bitstring)
             this->bitstring->set_bit(--counter,BitSpace::c_to_bit(in));
