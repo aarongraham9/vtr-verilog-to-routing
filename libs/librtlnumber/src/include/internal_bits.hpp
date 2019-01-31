@@ -403,12 +403,13 @@ namespace BitSpace {
 
         /**
          * Unary Reduction operations
+         * This is Msb to Lsb on purpose, as per specs
          */
         VerilogBits *bitwise_reduce(const bit_value_t lut[4][4])
         {
 
-            bit_value_t result = this->get_bit(0);
-            for(size_t i=1; i < this->size(); i++)
+            bit_value_t result = this->get_bit(this->size()-1);
+            for(size_t i=this->size()-2; i < this->size(); i--)
             {
                 result = lut[result][this->get_bit(i)];
             }

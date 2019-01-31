@@ -68,32 +68,4 @@ VNumber V_MOD(VNumber& a,VNumber& b);
  */
 VNumber V_TERNARY(VNumber& a, VNumber& b, VNumber& c);
 
-inline VNumber operator!(VNumber& a){ return V_LOGICAL_NOT(a); }
-inline VNumber operator~(VNumber& a){ return V_BITWISE_NOT(a); }
-
-inline VNumber operator-(VNumber& a){ return V_MINUS(a); }
-inline VNumber operator+(VNumber& a){ return V_ADD(a); }
-
-inline VNumber operator&(VNumber& a, VNumber& b){ return V_BITWISE_AND(a,b); }
-inline VNumber operator|(VNumber& a, VNumber& b){ return V_BITWISE_OR(a,b); }
-inline VNumber operator^(VNumber& a, VNumber& b){ return V_BITWISE_XOR(a,b); }
-
-inline VNumber operator<<(VNumber& a, VNumber& b){ return V_SHIFT_LEFT(a,b); }
-inline VNumber operator>>(VNumber& a, VNumber& b){ return V_SHIFT_RIGHT(a,b); }
-
-inline VNumber operator&&(VNumber& a, VNumber& b){ return V_LOGICAL_AND(a,b); }
-inline VNumber operator||(VNumber& a, VNumber& b){ return V_LOGICAL_OR(a,b); }
-inline VNumber operator<(VNumber& a, VNumber& b){ return V_LT(a,b); }
-inline VNumber operator>(VNumber& a, VNumber& b){ return V_GT(a,b); }
-inline VNumber operator<=(VNumber& a, VNumber& b){ return V_LE(a,b); }
-inline VNumber operator>=(VNumber& a, VNumber& b){ return V_GE(a,b); }
-inline VNumber operator==(VNumber& a, VNumber& b){ return V_EQUAL(a,b); }
-inline VNumber operator!=(VNumber& a, VNumber& b){ return V_NOT_EQUAL(a,b); }
-
-inline VNumber operator+(VNumber& a, VNumber& b){ return V_ADD(a,b); }
-inline VNumber operator-(VNumber& a, VNumber& b){ return V_MINUS(a,b); }
-inline VNumber operator*(VNumber& a, VNumber& b){ return V_MULTIPLY(a,b); }
-inline VNumber operator/(VNumber& a, VNumber& b){ return V_DIV(a,b); }
-inline VNumber operator%(VNumber& a, VNumber& b){ return V_MOD(a,b); }
-
 #endif //RTL_INT_H

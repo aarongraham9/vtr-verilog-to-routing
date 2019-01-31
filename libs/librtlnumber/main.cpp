@@ -36,9 +36,9 @@ static std::string arithmetic(std::string op, std::string a_in)
 	
 	/* return Process Operator via ternary */
 	return (
-		(op == "~")		?		(~a):
-		(op == "-")		?		(-a):
-		(op == "+")		?		(+a):
+		(op == "~")		?		V_BITWISE_NOT(a):
+		(op == "-")		?		V_MINUS(a):
+		(op == "+")		?		V_ADD(a):
 		(op == "&")		?		V_BITWISE_AND(a):
 		(op == "|")		?		V_BITWISE_OR(a):
 		(op == "^")		?		V_BITWISE_XOR(a):
@@ -46,7 +46,7 @@ static std::string arithmetic(std::string op, std::string a_in)
 		(op == "~|")	?		V_BITWISE_NOR(a):
 		(op == "~^"	
 		|| op == "^~")	?		V_BITWISE_XNOR(a):
-		(op == "!")		?		(!a):
+		(op == "!")		?		V_LOGICAL_NOT(a):
 								bad_ops(op)
 	).to_string();
 }
@@ -60,9 +60,9 @@ static std::string arithmetic(std::string a_in, std::string op, std::string b_in
 
 	/* return Process Operator via ternary */
 	return (
-		(op == "&")		?		(a & b):
-		(op == "|")		?		(a | b):
-		(op == "^")		?		(a ^ b):
+		(op == "&")		?		V_BITWISE_AND(a, b):
+		(op == "|")		?		V_BITWISE_OR(a, b):
+		(op == "^")		?		V_BITWISE_XOR(a, b):
 		(op == "~&")	?		V_BITWISE_NAND(a, b):
 		(op == "~|")	?		V_BITWISE_NOR(a, b):
 		(op == "~^"	
@@ -71,27 +71,27 @@ static std::string arithmetic(std::string a_in, std::string op, std::string b_in
 		(op == "===" )	?		V_CASE_EQUAL(a, b):
 		(op == "!==")	?		V_CASE_NOT_EQUAL(a, b):
 		/*	Shift Operator	*/
-		(op == "<<")	?		(a << b):
+		(op == "<<")	?		V_SHIFT_LEFT(a, b):
 		(op == "<<<")	?		V_SIGNED_SHIFT_LEFT(a, b):
-		(op == ">>")	?		(a >> b):
+		(op == ">>")	?		V_SHIFT_RIGHT(a, b):
 		(op == ">>>")	?		V_SIGNED_SHIFT_RIGHT(a, b):
 		/* Logical Operators */
-		(op == "&&")	?		(a && b):
-		(op == "||")	?		(a || b):
-		(op == "<")		?		(a < b):																																													
-		(op == ">")		?		(a > b):
-		(op == "<=")	?		(a <= b):
-		(op == ">=")	?		(a >= b):
-		(op == "==")	?		(a == b):
-		(op == "!=")	?		(a != b):
+		(op == "&&")	?		V_LOGICAL_AND(a, b):
+		(op == "||")	?		V_LOGICAL_OR(a, b):
+		(op == "<")		?		V_LT(a, b):																																													
+		(op == ">")		?		V_GT(a, b):
+		(op == "<=")	?		V_LE(a, b):
+		(op == ">=")	?		V_GE(a, b):
+		(op == "==")	?		V_EQUAL(a, b):
+		(op == "!=")	?		V_NOT_EQUAL(a, b):
 		/* arithmetic Operators */																
-		(op == "+")		?		(a + b):
-		(op == "-")		?		(a - b):
-		(op == "*")		?		(a * b):
+		(op == "+")		?		V_ADD(a, b):
+		(op == "-")		?		V_MINUS(a, b):
+		(op == "*")		?		V_MULTIPLY(a, b):
 		(op == "**")	?		V_POWER(a, b):
 		/* cannot div by 0 */
-		(op == "/")		?		(a / b):
-		(op == "%")		?		(a % b):
+		(op == "/")		?		V_DIV(a, b):
+		(op == "%")		?		V_MOD(a, b):
 								bad_ops(op)
 	).to_string();
 }

@@ -196,7 +196,7 @@ static VNumber shift_op(VNumber& a, int64_t b, bool sign_shift)
 
 bool V_TRUE(VNumber& a)
 {
-	return (a.get_value() != 0);
+	return (a.bitwise_reduce(l_or).get_value());
 }
 
 /***
